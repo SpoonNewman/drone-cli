@@ -40,30 +40,42 @@ async fn main() -> Result<()> {
     // Choose transport based on endpoint scheme; we'll use Fake for now.
     let transport = match cli.endpoint.as_str() {
         "fake://" => dronecore::transport::FakeTransport::new(),
-        _ => dronecore::transport::FakeTransport::new(), // TODO: udp://, serial://
+        _ => dronecore::transport::FakeTransport::new(), // TODO: We need to use https:// but for now keep it http so we don't deal with SSL
     };
 
     let mut drone = Drone::new(transport);
     drone.connect().await.context("failed to connect")?;
     info!("connected to {}", cli.endpoint);
 
+    // TODO: For each of these commands we need to check whether the command handler, i.e. `drone.arm().await.context("arm failed")?;` actually
+    // succeeded or not and handle that failure.
+    // TODO: Additionally we need to have a test for each of these commands that confirms the command works successfully.
     match cli.command {
         Commands::Connect => {
+            // TODO: This needs to evaluate the state of whether we are connected or not
+            // Questions:
+            //  - How do we know if we're connected? Do we instantiate another connection to test? Probably
             println!("Connected.");
         }
         Commands::Arm => {
+            // TODO: What does this actually mean? i.e. What does it mean to ARM the drone? Why do we want this?
             drone.arm().await.context("arm failed")?;
             println!("Armed.");
         }
         Commands::Takeoff { altitude } => {
+            // TODO: Confirm we actually are working with meters.
             drone.takeoff(altitude).await.with_context(|| format!("takeoff to {altitude}m failed"))?;
             println!("Takeoff initiated to {altitude}m.");
         }
         Commands::Land => {
+            // TODO: What happens if landing failed? What's the fallback behavior? That behavior handling needs to be written in.
             drone.land().await.context("land failed")?;
             println!("Landing.");
         }
         Commands::Status => {
+            // TODO: This needs to get a TelemetrySnapshot DTO from the FlightBridge
+            // then it should print it out. Could probably just print out the JSON model dump of TelemetrySnasphot
+            // and be done with it. 
             let s = drone.status().await.context("status failed")?;
             println!("{s}");
         }

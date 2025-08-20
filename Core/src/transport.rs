@@ -23,6 +23,7 @@ impl Transport for FakeTransport {
         self.connected = true;
         Ok(())
     }
+
     async fn send(&mut self, bytes: &[u8]) -> Result<()> {
         if !self.connected {
             return Err(DroneError::Connect("not connected".into()));
@@ -33,6 +34,7 @@ impl Transport for FakeTransport {
         }
         Ok(())
     }
+
     async fn recv(&mut self) -> Result<Vec<u8>> {
         if !self.connected {
             return Err(DroneError::Connect("not connected".into()));
