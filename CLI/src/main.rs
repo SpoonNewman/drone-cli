@@ -58,7 +58,6 @@ async fn main() -> Result<()> {
             println!("Connected.");
         }
         Commands::Arm => {
-            // TODO: What does this actually mean? i.e. What does it mean to ARM the drone? Why do we want this?
             drone.arm().await.context("arm failed")?;
             println!("Armed.");
         }
