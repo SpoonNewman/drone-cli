@@ -2,6 +2,8 @@ use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use tracing::{debug, info};
 use dronecore::{drone::Drone, transport::FakeTransport};
+use core::http_api::HttpDroneApi;
+use core::drone::Drone;
 
 #[derive(Parser, Debug)]
 #[command(name = "dronectl", about = "CLI to control your drone")]
@@ -38,14 +40,12 @@ async fn main() -> Result<()> {
     init_tracing(cli.verbose)?;
 
     // Choose transport based on endpoint scheme; we'll use Fake for now.
-    let transport = match cli.endpoint.as_str() {
-        "fake://" => dronecore::transport::FakeTransport::new(),
-        _ => dronecore::transport::FakeTransport::new(), // TODO: We need to use https:// but for now keep it http so we don't deal with SSL
-    };
+// new: using HttpDroneApi
+use dronecore::http_api::HttpDroneApi; // add this at the top
 
-    let mut drone = Drone::new(transport);
-    drone.connect().await.context("failed to connect")?;
-    info!("connected to {}", cli.endpoint);
+let api = HttpDroneApi::new(cli.endpoint.clone());
+let mut drone = Drone::new(api);
+;
 
     // TODO: For each of these commands we need to check whether the command handler, i.e. `drone.arm().await.context("arm failed")?;` actually
     // succeeded or not and handle that failure.
