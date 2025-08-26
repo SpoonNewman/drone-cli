@@ -2,6 +2,9 @@ use thiserror::Error;
 
 pub mod transport;
 pub mod drone;
+pub mod api;
+pub mod http_api;
+pub mod dtos;
 
 #[derive(Debug, Error)]
 pub enum DroneError {
