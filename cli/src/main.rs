@@ -2,8 +2,6 @@ use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use tracing::{debug, info};
 use dronecore::{drone::Drone, transport::FakeTransport};
-use core::http_api::HttpDroneApi;
-use core::drone::Drone;
 
 #[derive(Parser, Debug)]
 #[command(name = "dronectl", about = "CLI to control your drone")]
@@ -76,7 +74,7 @@ let mut drone = Drone::new(api);
             // then it should print it out. Could probably just print out the JSON model dump of TelemetrySnasphot
             // and be done with it. 
             let s = drone.status().await.context("status failed")?;
-            println!("{s}");
+            println!("{:#?}", s);
         }
     }
 
