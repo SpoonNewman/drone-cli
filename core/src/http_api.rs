@@ -1,8 +1,19 @@
 use async_trait::async_trait;
+use anyhow::{bail, Context, Result};
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use reqwest::Client;
-use crate::{Result, DroneError};
+use serde::de::DeserializeOwned;
+use serde::Serialize;
+use std::fmt::{Debug};
+// use crate::{Result, DroneError};
 use crate::dtos::responses::telemetry_snapshot::TelemetrySnapshot;
+use crate::dtos::requests::drone_requests::DroneLandRequestDTO;
 use super::api::DroneApi;
+
+pub enum SupportedHttpMethods {
+    Get,
+    Post
+}
 
 pub struct HttpDroneApi {
     client: Client,
