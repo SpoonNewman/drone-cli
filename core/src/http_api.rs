@@ -103,5 +103,167 @@ impl DroneApi for HttpDroneApi {
         }
     }
 
+    async fn post<T, B>(
+        &mut self, 
+        endpoint: &String, 
+        body: Option<&B>
+    ) -> anyhow::Result<T> 
+    where 
+        T: DeserializeOwned + Serialize + Debug + Clone, 
+        B: Serialize + ?Sized + Sync 
+    {
+        self.post_with_headers(endpoint, body, None).await
+    }
+
+    async fn get<T>(&mut self, endpoint: &String) -> Result<Option<T>>
+    where
+        T: DeserializeOwned + Serialize + Debug
+    {
+        self.get_with_headers::<T>(endpoint, None).await
+    }
+
+    async fn get_with_headers<T>(
+        &mut self,
+        endpoint: &str,
+        extra: Option<HeaderMap>
+    ) -> Result<Option<T>>
+    where
+        T: DeserializeOwned + Serialize + Debug
+    {
+        let result = self
+            ._send_request::<T, ()>(endpoint, SupportedHttpMethods::Get, None, extra)
+            .await;
+
+        result
+    }
+
+    async fn post_with_headers<T, B>(
+        &mut self,
+        endpoint: &str,
+        body: Option<&B>,
+        extra: Option<HeaderMap>
+    ) -> anyhow::Result<T>
+    where
+        T: DeserializeOwned + Serialize + Debug + Clone,
+        B: Serialize + ?Sized + Sync,
+    {
+        let wrapped = self
+            ._send_request::<T, B>(endpoint, SupportedHttpMethods::Post, body, extra)
+            .await?
+            .expect("POST endpoints must return a body");
+    
+        Ok(wrapped)
+    }
+
+    async fn _send_request<T, B>(
+        &mut self,
+        endpoint: &str,
+        http_method: SupportedHttpMethods,
+        body: Option<&B>,
+        extra_headers: Option<HeaderMap>,
+    ) -> Result<Option<T>>
+    where
+        T: DeserializeOwned,
+        B: Serialize + ?Sized + Sync,
+    {
+        match http_method {
+            SupportedHttpMethods::Get => {
+                self._get_request_by_http::<T>(endpoint, extra_headers).await
+            }
+    
+            SupportedHttpMethods::Post => {
+                let value = self
+                    ._post_request_by_http::<T, B>(endpoint, body, extra_headers)
+                    .await?;
+                Ok(Some(value))         // ← no semicolon here
+            }
+        }
+    }
+
+    async fn _get_request_by_http<T>(
+        &mut self,
+        endpoint: &str,
+        extra: Option<HeaderMap>,
+    ) -> Result<Option<T>>
+    where
+        T: DeserializeOwned,
+    {
+        let url = format!("{}/{}", self.base, endpoint);
+        let mut req = self.client.get(url);
+    
+        if let Some(h) = extra {
+            req = req.headers(h);
+        }
+
+        let resp = req.send().await?;
+
+        /* ========== 204 No Content ========== */
+        if resp.status() == reqwest::StatusCode::NO_CONTENT {
+            return Ok(None);
+        }
+
+        /* ========== error branch ========== */
+        if !resp.status().is_success() {
+            let status = resp.status();
+            let text   = resp.text().await?;
+
+            eprintln!("HTTP {} – raw body: {}", status, text);
+            bail!("HTTP {}: {}", status, text);
+        }
+
+        /* ========== success branch ========== */
+        let value = resp.json::<T>().await?;
+        Ok(Some(value))
+    }
+
+    async fn _post_request_by_http<T, B>(
+        &mut self,
+        endpoint: &str,
+        body: Option<&B>,
+        extra: Option<HeaderMap>,
+    ) -> anyhow::Result<T>
+    where
+        T: DeserializeOwned,
+        B: Serialize + ?Sized + Sync,
+    {
+        let url = format!("{}/{}", self.base, endpoint);
+        let mut req = self.client.post(url);
+    
+        if let Some(h) = extra {
+            req = req.headers(h);
+        }
+
+        if let Some(payload) = body {
+            req = req.json(payload);
+        }
+    
+        let resp = req.send().await?;
+
+        if !resp.status().is_success() {
+            let status = resp.status();
+            let text   = resp.text().await?;
+
+            eprintln!("HTTP {} – raw body: {}", status, text);
+            bail!("HTTP {}: {}", status, text);
+        }
+
+        /* ----------- success branch ----------- */
+        let value = resp.json::<T>().await?;
+        Ok(value)
+    }
+
+    fn retrieve_headers(&mut self, token: &String) -> anyhow::Result<HeaderMap> {
+        let mut hdr: HeaderMap =  HeaderMap::new();
+        hdr.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {}", token))?
+        );
+        Ok((hdr))
+    }
+
+    // TODO: This needs to read from somewhere, probably a static JSON file unless there's an envvar
+    // that has the token. There are some "Rust" ways of dealing with this.
+    fn get_my_token(&mut self) -> String {
+        return String::from("MY BADASS TOKEN")
     }
 }
