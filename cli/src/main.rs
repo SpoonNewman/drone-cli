@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use tracing::{debug, info};
-use dronecore::{drone::Drone, transport::FakeTransport};
+use dronecore::{drone::Drone};
 
 #[derive(Parser, Debug)]
 #[command(name = "dronectl", about = "CLI to control your drone")]
