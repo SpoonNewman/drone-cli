@@ -26,7 +26,7 @@ use bitflags::bitflags;
 
 // ---------- bitflags ----------
 bitflags! {
-    #[derive(Default)]
+    #[derive(Default, Serialize, Deserialize, Clone, Debug)]
     pub struct FlightModeFlags: u32 {
         const ANGLE   = 1 << 0;
         const HORIZON = 1 << 1;
@@ -34,14 +34,14 @@ bitflags! {
     }
 }
 bitflags! {
-    #[derive(Default)]
+    #[derive(Default, Serialize, Deserialize, Clone, Debug)]
     pub struct ArmingFlags: u32 {
         const OK_TO_ARM   = 1 << 0;
         const MSP_ACTIVE  = 1 << 2;
     }
 }
 bitflags! {
-    #[derive(Default)]
+    #[derive(Default, Serialize, Deserialize, Clone, Debug)]
     pub struct DisableReasonsFlags: u32 {
         const THROTTLE   = 1 << 0;
         const MSP        = 1 << 1;
