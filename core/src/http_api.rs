@@ -30,28 +30,40 @@ impl HttpDroneApi {
 #[async_trait]
 impl DroneApi for HttpDroneApi {
     async fn connect(&mut self) -> Result<()> {
-        // optional health check
-        let resp = self.client.get(self.url("health")).send().await
-            .map_err(|e| DroneError::Connect(e.to_string()))?;
-        if !resp.status().is_success() {
-            return Err(DroneError::Connect(format!("health: {}", resp.status())));
-        }
+        // // optional health check
+        // let resp = self.client.get(self.url("health")).send().await
+        //     .map_err(|e| DroneError::Connect(e.to_string()))?;
+        // if !resp.status().is_success() {
+        //     // return Err("health: {}", resp.status());
+        //     eprintln!("health: {}", resp.status());
+        // }
         Ok(())
     }
 
     async fn arm(&mut self) -> Result<()> {
-        self.client.post(self.url("commands/arm")).send().await
-            .map_err(|e| DroneError::Io(e.to_string()))?
-            .error_for_status().map_err(|e| DroneError::Protocol(e.to_string()))?;
+        // self.client.post(self.url("commands/arm")).send().await
+        //     .map_err(|e| DroneError::Io(e.to_string()))?
+        //     .error_for_status().map_err(|e| DroneError::Protocol(e.to_string()))?;
         Ok(())
     }
 
     async fn takeoff(&mut self, altitude_m: f32) -> Result<()> {
-        self.client.post(self.url("commands/takeoff"))
-            .json(&serde_json::json!({ "altitude_m": altitude_m }))
-            .send().await
-            .map_err(|e| DroneError::Io(e.to_string()))?
-            .error_for_status().map_err(|e| DroneError::Protocol(e.to_string()))?;
+        // TODO: Start here! This needs built out similar to how `land` and `status` are
+        // - Pay attention to post or get. Don't use methods with the `_` preceding it,
+        // this are "under the hood" methods.
+        // - Pay attention to the JSON in the commented out code, that will be your
+        // post `body` but it needs to be represented as a DTO similar to `DroneLandRequestDTO`
+        // instead of just raw json like below. So that means go build the DTO and use it.
+        // - In the case of `DroneLandRequestDTO` there weren't any properties but we still needed
+        // a body because it's a POST request and that's required.
+        // - Additionally we need to assume that `connect()` is the only command that doesn't require
+        // a token in the headers.
+
+        // self.client.post(self.url("commands/takeoff"))
+        //     .json(&serde_json::json!({ "altitude_m": altitude_m }))
+        //     .send().await
+        //     .map_err(|e| DroneError::Io(e.to_string()))?
+        //     .error_for_status().map_err(|e| DroneError::Protocol(e.to_string()))?;
         Ok(())
     }
 
