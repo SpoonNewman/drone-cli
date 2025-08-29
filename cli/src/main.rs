@@ -41,6 +41,11 @@ async fn main() -> Result<()> {
 // new: using HttpDroneApi
 use dronecore::http_api::HttpDroneApi; // add this at the top
 
+// FIXME: This `endpoint` should probably be changed to `base` or `base_address`
+// it will effectively mean `http://<address>` and the CLI will use "endpoints" like `/status`
+// or `/commands/land`.
+// The effect in conclusion looks like `http://<address>/status` or `http://<address>/commands/land`
+// which is why `base` or some similar naming makes more sense than `endpoint` right now
 let api = HttpDroneApi::new(cli.endpoint.clone());
 let mut drone = Drone::new(api);
 ;
