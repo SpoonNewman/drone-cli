@@ -68,18 +68,40 @@ impl DroneApi for HttpDroneApi {
     }
 
     async fn land(&mut self) -> Result<()> {
-        self.client.post(self.url("commands/land")).send().await
-            .map_err(|e| DroneError::Io(e.to_string()))?
-            .error_for_status().map_err(|e| DroneError::Protocol(e.to_string()))?;
-        Ok(())
+        // self.client.post(self.url("commands/land")).send().await
+        //     .map_err(|e| DroneError::Io(e.to_string()))?
+        //     .error_for_status().map_err(|e| DroneError::Protocol(e.to_string()))?;
+        let endpoint = String::from("commands/land");
+        let body = DroneLandRequestDTO::new()?;
+        let token: String = self.get_my_token();
+        let headers = self.retrieve_headers(&token)?;
+        let result = self.post_with_headers(&endpoint, Some(&body), Some(headers)).await?;
+        match result {
+            Some(res) => {
+                Ok(res)
+            }
+
+            None => {
+                bail!("The server is unreachable!");
+            }
+        }
     }
 
     async fn status(&mut self) -> Result<TelemetrySnapshot> {
-        let resp = self.client.get(self.url("status")).send().await
-            .map_err(|e| DroneError::Io(e.to_string()))?
-            .error_for_status().map_err(|e| DroneError::Protocol(e.to_string()))?;
-        let snap = resp.json::<TelemetrySnapshot>().await
-            .map_err(|e| DroneError::Protocol(e.to_string()))?;
-        Ok(snap)
+        // FIXME: The status endpoint requires a token in the headers but we're currently not sending that.
+        // Fix this so it's sending headers with the token. Look above ^^^
+        let endpoint = String::from("status");
+        let result = self.get(&endpoint).await?;
+        match result {
+            Some(res) => {
+                Ok(res)
+            }
+
+            None => {
+                bail!("The server is unreachable!");
+            }
+        }
+    }
+
     }
 }
