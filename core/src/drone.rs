@@ -1,5 +1,5 @@
 // ChatGPT generated code.
-use crate::{Result};
+use anyhow::{Result};
 use crate::dtos::responses::telemetry_snapshot::TelemetrySnapshot;
 use crate::api::DroneApi;
 
