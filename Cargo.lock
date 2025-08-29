@@ -245,6 +245,7 @@ dependencies = [
 name = "dronecore"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "async-trait",
  "bitflags",
  "reqwest",
